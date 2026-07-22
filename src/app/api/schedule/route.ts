@@ -10,8 +10,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const date = searchParams.get("date") || format(new Date(), "yyyy-MM-dd");
 
-    const barberId =
-      session.role === "barber" ? session.barberId : searchParams.get("barberId");
+    const barberId = searchParams.get("barberId") ?? session.barberId;
 
     const where: Record<string, unknown> = {
       date,
