@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { format, addDays, subDays, parse } from "date-fns";
 import { bs } from "date-fns/locale";
 import BarberSettings from "@/components/BarberSettings";
+import BarberAppInstall from "@/components/BarberAppInstall";
 import { formatPrice } from "@/lib/booking-utils";
 
 interface Session {
@@ -204,6 +205,7 @@ export default function StaffPanel() {
           <a href="/" className="block text-center text-[var(--color-cream-muted)] text-sm mt-2">
             ← Nazad na website
           </a>
+          <BarberAppInstall />
         </form>
       </div>
     );
@@ -285,6 +287,10 @@ export default function StaffPanel() {
       </header>
 
       <main className="px-5 py-6">
+        <div className="mb-5">
+          <BarberAppInstall compact />
+        </div>
+
         {tab === "availability" && session?.barberId && <BarberSettings />}
 
         {tab === "mine" && (

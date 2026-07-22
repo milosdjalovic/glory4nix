@@ -3,12 +3,17 @@
 import { useState } from "react";
 import { detectIosBrowser } from "@/lib/ios-browser";
 
-export default function IosInstallGuide() {
+interface IosInstallGuideProps {
+  installUrl?: string;
+}
+
+export default function IosInstallGuide({ installUrl }: IosInstallGuideProps) {
   const [copied, setCopied] = useState(false);
   const browser = detectIosBrowser();
 
   async function copyLink() {
-    await navigator.clipboard.writeText(window.location.origin);
+    const url = installUrl ?? (typeof window !== "undefined" ? window.location.origin : "");
+    await navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
   }
