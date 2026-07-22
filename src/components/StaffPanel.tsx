@@ -46,6 +46,7 @@ export default function StaffPanel() {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(false);
   const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushError, setPushError] = useState("");
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [cancelConfirmId, setCancelConfirmId] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("mine");
@@ -144,27 +145,63 @@ export default function StaffPanel() {
     }
   }
 
+  useEffect(() => {
+    if (!authenticated || !session?.barberId) return;
+
+    async function checkPushStatus() {
+      if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+      try {
+        const reg = await navigator.serviceWorker.ready;
+        const sub = await reg.pushManager.getSubscription();
+        if (sub && Notification.permission === "granted") {
+          setPushEnabled(true);
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+
+    checkPushStatus();
+  }, [authenticated, session?.barberId]);
+
   async function enablePush() {
-    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+    setPushError("");
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+      setPushError("Browser ne podržava push obavještenja.");
+      return;
+    }
     try {
       const reg = await navigator.serviceWorker.register("/sw.js");
-      const { publicKey } = await (await fetch("/api/push")).json();
-      if (!publicKey) return;
-      if ((await Notification.requestPermission()) !== "granted") return;
+      const pushRes = await fetch("/api/push", { credentials: "same-origin" });
+      const { publicKey } = await pushRes.json();
+      if (!publicKey) {
+        setPushError("Push nije podešen na serveru (VAPID ključevi).");
+        return;
+      }
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") {
+        setPushError("Dozvola za obavještenja nije data.");
+        return;
+      }
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(publicKey),
       });
       const json = sub.toJSON();
-      await fetch("/api/push", {
+      const saveRes = await fetch("/api/push", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "same-origin",
         body: JSON.stringify({ endpoint: json.endpoint, keys: json.keys }),
       });
+      if (!saveRes.ok) {
+        const data = await saveRes.json();
+        setPushError(data.error || "Greška pri aktivaciji obavještenja.");
+        return;
+      }
       setPushEnabled(true);
     } catch {
-      /* ignore */
+      setPushError("Greška pri aktivaciji. Probaj ponovo.");
     }
   }
 
@@ -253,15 +290,28 @@ export default function StaffPanel() {
           </div>
           <div className="flex items-center gap-2">
             {!pushEnabled && session?.barberId && (
-              <button onClick={enablePush} className="text-xs text-[var(--color-gold)] border border-[var(--color-gold)]/30 rounded-full px-3 py-1.5">
-                🔔
+              <button
+                onClick={enablePush}
+                className="text-xs text-[var(--color-gold)] border border-[var(--color-gold)]/30 rounded-full px-3 py-1.5"
+                title="Uključi push obavještenja"
+              >
+                🔔 Uključi
               </button>
+            )}
+            {pushEnabled && (
+              <span className="text-xs text-[var(--color-gold)]/70" title="Obavještenja aktivna">
+                🔔
+              </span>
             )}
             <button onClick={handleLogout} className="text-[var(--color-cream-muted)] text-sm px-2">
               Odjava
             </button>
           </div>
         </div>
+
+        {pushError && (
+          <p className="mt-2 text-xs text-red-400">{pushError}</p>
+        )}
 
         {showDateNav && (
           <>

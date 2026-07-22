@@ -11,9 +11,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Nevalidna pretplata" }, { status: 400 });
     }
 
-    const barberId = session.role === "barber" ? session.barberId! : req.nextUrl.searchParams.get("barberId");
+    const barberId = session.barberId ?? req.nextUrl.searchParams.get("barberId");
     if (!barberId) {
-      return NextResponse.json({ error: "barberId je obavezan" }, { status: 400 });
+      return NextResponse.json({ error: "Nemate povezan barber profil" }, { status: 400 });
     }
 
     await prisma.pushSubscription.upsert({
