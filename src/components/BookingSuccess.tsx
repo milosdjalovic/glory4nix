@@ -12,6 +12,7 @@ import {
 } from "@/lib/calendar";
 import { formatPrice } from "@/lib/booking-utils";
 import { usePwaInstall } from "@/hooks/usePwaInstall";
+import IosInstallGuide from "@/components/IosInstallGuide";
 
 interface BookingSuccessProps {
   bookingId: string;
@@ -42,7 +43,6 @@ export default function BookingSuccess({
   const [showQr, setShowQr] = useState(false);
   const [shareSupported, setShareSupported] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [showIosInstall, setShowIosInstall] = useState(false);
   const [showAndroidInstall, setShowAndroidInstall] = useState(false);
   const [installing, setInstalling] = useState(false);
   const { canInstall, isIosDevice, isAndroidDevice, hasNativePrompt, install } = usePwaInstall();
@@ -109,10 +109,7 @@ export default function BookingSuccess({
   }
 
   async function handleInstallApp() {
-    if (isIosDevice) {
-      setShowIosInstall((v) => !v);
-      return;
-    }
+    if (isIosDevice) return;
 
     if (!hasNativePrompt && isAndroidDevice) {
       setShowAndroidInstall((v) => !v);
@@ -286,53 +283,46 @@ export default function BookingSuccess({
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-[family-name:var(--font-display)] font-semibold text-sm">
-                  Želite brži pristup?
+                  {isIosDevice ? "Sačuvajte prečicu na iPhone" : "Želite brži pristup?"}
                 </p>
                 <p className="text-[var(--color-cream-muted)] text-xs mt-1 leading-relaxed">
-                  Instalirajte aplikaciju na telefon — zakazivanje u jednom dodiru, bez pretraživača.
+                  {isIosDevice
+                    ? "Jednom dodajte na početni ekran — sljedeći put otvarate app direktno, bez browsera."
+                    : "Instalirajte aplikaciju na telefon — zakazivanje u jednom dodiru, bez pretraživača."}
                 </p>
               </div>
             </div>
 
-            <button
-              onClick={handleInstallApp}
-              disabled={installing}
-              className="action-btn action-btn-primary w-full mt-4"
-            >
-              <DownloadIcon />
-              <span>
-                {installing
-                  ? "Instaliranje..."
-                  : isIosDevice
-                  ? showIosInstall
-                    ? "Sakrij upute"
-                    : "Dodaj na početni ekran"
-                  : showAndroidInstall
-                  ? "Sakrij upute"
-                  : "Instaliraj aplikaciju"}
-              </span>
-            </button>
+            {isIosDevice ? (
+              <IosInstallGuide />
+            ) : (
+              <>
+                <button
+                  onClick={handleInstallApp}
+                  disabled={installing}
+                  className="action-btn action-btn-primary w-full mt-4"
+                >
+                  <DownloadIcon />
+                  <span>
+                    {installing
+                      ? "Instaliranje..."
+                      : showAndroidInstall
+                      ? "Sakrij upute"
+                      : "Instaliraj aplikaciju"}
+                  </span>
+                </button>
 
-            {showAndroidInstall && isAndroidDevice && !hasNativePrompt && (
-              <div className="mt-3 rounded-xl bg-[var(--color-bg)]/60 border border-[var(--color-border)] px-3 py-3 text-xs text-[var(--color-cream-muted)] leading-relaxed animate-fade-in">
-                <p className="font-medium text-[var(--color-cream)] mb-2">Android:</p>
-                <ol className="space-y-1.5 list-decimal list-inside">
-                  <li>Dodirni meni <strong className="text-[var(--color-cream)]">⋮</strong> u browseru</li>
-                  <li>Odaberi <strong className="text-[var(--color-cream)]">Instaliraj aplikaciju</strong></li>
-                  <li>Potvrdi instalaciju</li>
-                </ol>
-              </div>
-            )}
-
-            {showIosInstall && isIosDevice && (
-              <div className="mt-3 rounded-xl bg-[var(--color-bg)]/60 border border-[var(--color-border)] px-3 py-3 text-xs text-[var(--color-cream-muted)] leading-relaxed animate-fade-in">
-                <p className="font-medium text-[var(--color-cream)] mb-2">iPhone / iPad:</p>
-                <ol className="space-y-1.5 list-decimal list-inside">
-                  <li>Dodirni <strong className="text-[var(--color-cream)]">Share</strong> (kvadrat sa strelicom)</li>
-                  <li>Odaberi <strong className="text-[var(--color-cream)]">Add to Home Screen</strong></li>
-                  <li>Dodirni <strong className="text-[var(--color-cream)]">Add</strong></li>
-                </ol>
-              </div>
+                {showAndroidInstall && isAndroidDevice && !hasNativePrompt && (
+                  <div className="mt-3 rounded-xl bg-[var(--color-bg)]/60 border border-[var(--color-border)] px-3 py-3 text-xs text-[var(--color-cream-muted)] leading-relaxed animate-fade-in">
+                    <p className="font-medium text-[var(--color-cream)] mb-2">Android:</p>
+                    <ol className="space-y-1.5 list-decimal list-inside">
+                      <li>Dodirni meni <strong className="text-[var(--color-cream)]">⋮</strong> u browseru</li>
+                      <li>Odaberi <strong className="text-[var(--color-cream)]">Instaliraj aplikaciju</strong></li>
+                      <li>Potvrdi instalaciju</li>
+                    </ol>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
