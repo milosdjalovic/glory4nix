@@ -1,0 +1,129 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Barber {
+  id           String              @id @default(cuid())
+  name         String
+  slug         String              @unique
+  phone        String?
+  accentColor  String              @default("#C4A265")
+  createdAt    DateTime            @default(now())
+  schedules    BarberSchedule[]
+  bookings     Booking[]
+  blockedSlots BlockedSlot[]
+  closedDays   ClosedDay[]
+  closedPeriods ClosedPeriod[]
+  admin        Admin?
+  pushSubs     PushSubscription[]
+}
+
+model BarberSchedule {
+  id        String @id @default(cuid())
+  barberId  String
+  barber    Barber @relation(fields: [barberId], references: [id], onDelete: Cascade)
+  dayOfWeek Int
+  startTime String
+  endTime   String
+  isWorking Boolean @default(true)
+
+  @@unique([barberId, dayOfWeek])
+}
+
+model Service {
+  id              String    @id @default(cuid())
+  name            String
+  description     String?
+  price           Int
+  durationMinutes Int       @default(30)
+  active          Boolean   @default(true)
+  sortOrder       Int       @default(0)
+  createdAt       DateTime  @default(now())
+  bookings        Booking[]
+}
+
+model Booking {
+  id            String        @id @default(cuid())
+  barberId      String
+  barber        Barber        @relation(fields: [barberId], references: [id])
+  serviceId     String
+  service       Service       @relation(fields: [serviceId], references: [id])
+  customerName  String
+  customerPhone String
+  customerEmail String?
+  date          String
+  startTime     String
+  endTime       String
+  status        String        @default("confirmed")
+  notes         String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([barberId, date, startTime])
+  @@index([barberId, date])
+  @@index([date, status])
+}
+
+model BlockedSlot {
+  id        String  @id @default(cuid())
+  barberId  String
+  barber    Barber  @relation(fields: [barberId], references: [id], onDelete: Cascade)
+  date      String
+  startTime String?
+  endTime   String?
+  reason    String?
+  allDay    Boolean @default(false)
+
+  @@index([barberId, date])
+}
+
+model ClosedPeriod {
+  id        String   @id @default(cuid())
+  barberId  String
+  barber    Barber   @relation(fields: [barberId], references: [id], onDelete: Cascade)
+  startDate String
+  endDate   String
+  reason    String?
+  createdAt DateTime @default(now())
+
+  @@index([barberId, startDate, endDate])
+}
+
+model ClosedDay {
+  id       String  @id @default(cuid())
+  barberId String?
+  barber   Barber? @relation(fields: [barberId], references: [id], onDelete: Cascade)
+  date     String
+  reason   String?
+
+  @@unique([barberId, date])
+  @@index([date])
+}
+
+model Admin {
+  id           String  @id @default(cuid())
+  username     String  @unique
+  passwordHash String
+  role         String  @default("admin")
+  barberId     String? @unique
+  barber       Barber? @relation(fields: [barberId], references: [id])
+  createdAt    DateTime @default(now())
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  barberId  String
+  barber    Barber   @relation(fields: [barberId], references: [id], onDelete: Cascade)
+  endpoint  String
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  @@unique([barberId, endpoint])
+}

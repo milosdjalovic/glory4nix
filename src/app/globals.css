@@ -1,26 +1,306 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: #0A0A0A;
+  --color-bg-elevated: #141414;
+  --color-bg-card: #1A1A1A;
+  --color-surface: #222222;
+  --color-border: #2A2A2A;
+  --color-border-light: #333333;
+  --color-cream: #F5F0E8;
+  --color-cream-muted: #A8A095;
+  --color-gold: #C4A265;
+  --color-gold-light: #D4B87A;
+  --color-gold-dark: #9A7B45;
+  --font-display: var(--font-syne);
+  --font-body: var(--font-dm-sans);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-cream);
+  font-family: var(--font-body), system-ui, sans-serif;
+  overscroll-behavior: none;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-gold) 40%, transparent);
+  color: var(--color-cream);
+}
+
+/* ── Animations ── */
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulse-gold {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-gold) 40%, transparent); }
+  50% { box-shadow: 0 0 0 8px transparent; }
+}
+
+@keyframes success-pop {
+  0% { opacity: 0; transform: scale(0.5); }
+  60% { transform: scale(1.08); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes success-ring {
+  0% { opacity: 0.6; transform: scale(0.8); }
+  100% { opacity: 0; transform: scale(1.6); }
+}
+
+@keyframes draw-check {
+  from { stroke-dashoffset: 24; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes progress-fill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.35s ease-out both;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-pulse-gold {
+  animation: pulse-gold 2s ease-in-out infinite;
+}
+
+.animate-success-pop {
+  animation: success-pop 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.success-ring {
+  position: absolute;
+  inset: -8px;
+  border-radius: 9999px;
+  border: 2px solid var(--color-gold);
+  animation: success-ring 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+}
+
+.success-check path {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  animation: draw-check 0.4s ease-out 0.35s forwards;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #1A1A1A 25%, #252525 50%, #1A1A1A 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* ── Step transitions ── */
+
+.step-enter-forward {
+  animation: slide-in-right 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.step-enter-back {
+  animation: slide-in-left 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ── Ticket card ── */
+
+.ticket-card {
+  position: relative;
+}
+
+.ticket-notch {
+  position: absolute;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  background: var(--color-bg);
+  border-radius: 9999px;
+  transform: translateY(-50%);
+  z-index: 1;
+}
+
+.ticket-notch-left { left: -8px; }
+.ticket-notch-right { right: -8px; }
+
+.ticket-divider {
+  border-top: 1px dashed var(--color-border);
+  position: relative;
+}
+
+/* ── Action buttons ── */
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  height: 3rem;
+  padding: 0 1rem;
+  border-radius: 0.875rem;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  color: var(--color-cream);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: border-color 0.2s, background 0.2s, transform 0.15s;
+  cursor: pointer;
+}
+
+.action-btn:active {
+  transform: scale(0.98);
+}
+
+.action-btn-primary {
+  background: color-mix(in srgb, var(--color-gold) 12%, var(--color-bg-card));
+  border-color: color-mix(in srgb, var(--color-gold) 30%, var(--color-border));
+}
+
+.action-badge {
+  margin-left: auto;
+  font-size: 0.625rem;
+  color: var(--color-cream-muted);
+  opacity: 0.7;
+}
+
+.qr-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.25rem;
+  border-radius: 1rem;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+}
+
+/* ── Interactive cards ── */
+
+.interactive-card {
+  transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
+}
+
+.interactive-card:active {
+  transform: scale(0.98);
+}
+
+.interactive-card:hover {
+  border-color: var(--color-border-light);
+}
+
+.slot-btn {
+  transition: transform 0.15s, border-color 0.2s, background 0.2s;
+}
+
+.slot-btn:active {
+  transform: scale(0.95);
+}
+
+.date-chip {
+  transition: transform 0.15s, background 0.2s, border-color 0.2s;
+}
+
+.date-chip:not(:disabled):active {
+  transform: scale(0.95);
+}
+
+.progress-segment {
+  transform-origin: left;
+  transition: background 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.progress-segment.active {
+  animation: progress-fill 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ── Reduced motion ── */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+input, select, textarea, button {
+  font-family: inherit;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.gold-gradient {
+  background: linear-gradient(135deg, var(--color-gold) 0%, var(--color-gold-light) 50%, var(--color-gold-dark) 100%);
+}
+
+.gold-text {
+  background: linear-gradient(135deg, var(--color-gold-light), var(--color-gold));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+@media (max-width: 640px) {
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
 }
