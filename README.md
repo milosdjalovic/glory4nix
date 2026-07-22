@@ -21,9 +21,10 @@ Projekt koristi **PostgreSQL** (ne SQLite) — potreban je i lokalno i na Vercel
 Besplatna opcija: [Neon](https://neon.tech) — napravi projekat, kopiraj connection string u `.env`:
 
 ```
-DATABASE_URL="postgresql://...-pooler...?sslmode=require"
-DIRECT_URL="postgresql://...direct...?sslmode=require"
+DATABASE_URL="postgresql://...?sslmode=require"
 ```
+
+Koristi **Direct connection** string iz Neon dashboarda (ne pooled).
 
 ## Pristupni podaci (nakon seed-a)
 
@@ -58,8 +59,7 @@ git push -u origin main
 ### 2. Neon baza (produkcija)
 
 1. [neon.tech](https://neon.tech) → New Project
-2. Kopiraj **Pooled connection** → `DATABASE_URL`
-3. Kopiraj **Direct connection** → `DIRECT_URL`
+2. Kopiraj **Direct connection** string → `DATABASE_URL`
 
 ### 3. Vercel projekat
 
@@ -70,8 +70,7 @@ git push -u origin main
 
 | Varijabla | Obavezno | Opis |
 |-----------|----------|------|
-| `DATABASE_URL` | Da | Neon pooled connection |
-| `DIRECT_URL` | Da | Neon direct connection |
+| `DATABASE_URL` | Da | Neon **Direct connection** string |
 | `JWT_SECRET` | Da | `openssl rand -base64 32` |
 | `ADMIN_PASSWORD` | Da | Lozinka za Nix |
 | `VAPID_PUBLIC_KEY` | Ne* | Push obavještenja |
