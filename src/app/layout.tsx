@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Syne, DM_Sans } from "next/font/google";
+import PwaRegister from "@/components/PwaRegister";
 import "./globals.css";
 
 const syne = Syne({
@@ -40,7 +41,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="bs" className={`${syne.variable} ${dmSans.variable} h-full`}>
-      <body className="min-h-full antialiased">{children}</body>
+      <body className="min-h-full antialiased">
+        <PwaRegister />
+        {children}
+      </body>
     </html>
   );
 }

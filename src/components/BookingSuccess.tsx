@@ -11,6 +11,7 @@ import {
   type CalendarEvent,
 } from "@/lib/calendar";
 import { formatPrice } from "@/lib/booking-utils";
+import { usePwaInstall } from "@/hooks/usePwaInstall";
 
 interface BookingSuccessProps {
   bookingId: string;
@@ -41,6 +42,10 @@ export default function BookingSuccess({
   const [showQr, setShowQr] = useState(false);
   const [shareSupported, setShareSupported] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [showIosInstall, setShowIosInstall] = useState(false);
+  const [showAndroidInstall, setShowAndroidInstall] = useState(false);
+  const [installing, setInstalling] = useState(false);
+  const { canInstall, isIosDevice, isAndroidDevice, hasNativePrompt, install } = usePwaInstall();
 
   const confirmUrl =
     typeof window !== "undefined"
@@ -101,6 +106,22 @@ export default function BookingSuccess({
   function handleGoogleCalendar() {
     window.open(buildGoogleCalendarUrl(calendarEvent), "_blank");
     setSaved(true);
+  }
+
+  async function handleInstallApp() {
+    if (isIosDevice) {
+      setShowIosInstall((v) => !v);
+      return;
+    }
+
+    if (!hasNativePrompt && isAndroidDevice) {
+      setShowAndroidInstall((v) => !v);
+      return;
+    }
+
+    setInstalling(true);
+    await install();
+    setInstalling(false);
   }
 
   return (
@@ -253,6 +274,70 @@ export default function BookingSuccess({
         )}
       </div>
 
+      {canInstall && (
+        <div
+          className="mx-auto w-full max-w-sm mt-6 animate-fade-up"
+          style={{ animationDelay: "0.4s" }}
+        >
+          <div className="rounded-2xl border border-[var(--color-gold)]/20 bg-[var(--color-bg-card)] p-4">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl gold-gradient">
+                <PhoneIcon />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-[family-name:var(--font-display)] font-semibold text-sm">
+                  Želite brži pristup?
+                </p>
+                <p className="text-[var(--color-cream-muted)] text-xs mt-1 leading-relaxed">
+                  Instalirajte aplikaciju na telefon — zakazivanje u jednom dodiru, bez pretraživača.
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={handleInstallApp}
+              disabled={installing}
+              className="action-btn action-btn-primary w-full mt-4"
+            >
+              <DownloadIcon />
+              <span>
+                {installing
+                  ? "Instaliranje..."
+                  : isIosDevice
+                  ? showIosInstall
+                    ? "Sakrij upute"
+                    : "Dodaj na početni ekran"
+                  : showAndroidInstall
+                  ? "Sakrij upute"
+                  : "Instaliraj aplikaciju"}
+              </span>
+            </button>
+
+            {showAndroidInstall && isAndroidDevice && !hasNativePrompt && (
+              <div className="mt-3 rounded-xl bg-[var(--color-bg)]/60 border border-[var(--color-border)] px-3 py-3 text-xs text-[var(--color-cream-muted)] leading-relaxed animate-fade-in">
+                <p className="font-medium text-[var(--color-cream)] mb-2">Android:</p>
+                <ol className="space-y-1.5 list-decimal list-inside">
+                  <li>Dodirni meni <strong className="text-[var(--color-cream)]">⋮</strong> u browseru</li>
+                  <li>Odaberi <strong className="text-[var(--color-cream)]">Instaliraj aplikaciju</strong></li>
+                  <li>Potvrdi instalaciju</li>
+                </ol>
+              </div>
+            )}
+
+            {showIosInstall && isIosDevice && (
+              <div className="mt-3 rounded-xl bg-[var(--color-bg)]/60 border border-[var(--color-border)] px-3 py-3 text-xs text-[var(--color-cream-muted)] leading-relaxed animate-fade-in">
+                <p className="font-medium text-[var(--color-cream)] mb-2">iPhone / iPad:</p>
+                <ol className="space-y-1.5 list-decimal list-inside">
+                  <li>Dodirni <strong className="text-[var(--color-cream)]">Share</strong> (kvadrat sa strelicom)</li>
+                  <li>Odaberi <strong className="text-[var(--color-cream)]">Add to Home Screen</strong></li>
+                  <li>Dodirni <strong className="text-[var(--color-cream)]">Add</strong></li>
+                </ol>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       <button
         onClick={onNewBooking}
         className="mt-8 mx-auto text-[var(--color-cream-muted)] text-sm hover:text-[var(--color-gold)] transition-colors animate-fade-up"
@@ -292,6 +377,22 @@ function QrIcon() {
   return (
     <svg className="h-5 w-5 shrink-0 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12-2h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+    </svg>
+  );
+}
+
+function PhoneIcon() {
+  return (
+    <svg className="h-5 w-5 text-[var(--color-bg)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+    </svg>
+  );
+}
+
+function DownloadIcon() {
+  return (
+    <svg className="h-5 w-5 shrink-0 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
     </svg>
   );
 }
